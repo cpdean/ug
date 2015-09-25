@@ -1,3 +1,5 @@
+extern crate regex;
+
 use std::fs;
 use std::io::prelude::*;
 use std::io::BufReader;
@@ -5,7 +7,19 @@ use std::io::BufReader;
 use std::fs::File;
 use std::path::Path;
 
-fn buffered_reader_search(this_path: &Path, for_this: &str) {
+use regex::Regex;
+
+/// buffered_reader_search tries to use a BufReader for looking
+/// at the contents of files instead of using the file's
+/// trait method read_to_string.  The reasoning was that
+/// reading an entire file to a string might be slow as
+/// it would need to get to the end of the file before it can
+/// split it by lines and conduct the search.
+///
+/// turns out that this is about 10x slower with debug compilation
+/// and 2x slower on a release build
+#[allow(dead_code)]
+fn buffered_reader_search(this_path: &Path, for_this: &Regex) {
     let contents = fs::read_dir(this_path).unwrap();
     for path in contents {
         let p = path.unwrap().path();
@@ -18,7 +32,7 @@ fn buffered_reader_search(this_path: &Path, for_this: &str) {
             let matching_lines = reader.lines().filter(
                     |x| x.is_ok()
                 ).map(|x| x.unwrap())
-                .filter(|x| x.contains(for_this));
+                .filter(|x| for_this.is_match(x));
             for l in matching_lines {
                 println!("{}", l)
             }
@@ -26,7 +40,8 @@ fn buffered_reader_search(this_path: &Path, for_this: &str) {
     }
 }
 
-fn print_files_matching(this_path: &Path, for_this: &str) {
+#[allow(dead_code)]
+fn print_files_matching(this_path: &Path, for_this: &Regex) {
     let contents = fs::read_dir(this_path).unwrap();
     for path in contents {
         let p = path.unwrap().path();
@@ -40,7 +55,7 @@ fn print_files_matching(this_path: &Path, for_this: &str) {
                 Ok(yay_read) => yay_read,
                 Err(_) => 0,
             };
-            let matching_lines = buffer.lines().filter(|&x| x.contains(for_this));
+            let matching_lines = buffer.lines().filter(|&x| for_this.is_match(x));
             for l in matching_lines {
                 println!("{}", l)
             }
@@ -49,6 +64,7 @@ fn print_files_matching(this_path: &Path, for_this: &str) {
 }
 
 fn main() {
-    print_files_matching(Path::new("."), "metadata");
-    //buffered_reader_search(Path::new("."), "metadata");
+    let ref re = Regex::new(r"f.lter").unwrap();
+    //print_files_matching(Path::new("."), re);
+    buffered_reader_search(Path::new("."), re);
 }

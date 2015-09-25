@@ -2,3 +2,7 @@
 name = "ug"
 version = "0.1.0"
 authors = ["Conrad Dean <conrad.p.dean@gmail.com>"]
+
+[dependencies]
+regex = "0.1.41"
+docopt = "0.6.72"
