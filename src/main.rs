@@ -1,4 +1,5 @@
 extern crate regex;
+extern crate getopts;
 
 use std::fs;
 use std::io::prelude::*;
@@ -8,6 +9,9 @@ use std::fs::File;
 use std::path::Path;
 
 use regex::Regex;
+
+use getopts::Options;
+use std::env;
 
 /// buffered_reader_search tries to use a BufReader for looking
 /// at the contents of files instead of using the file's
@@ -63,8 +67,29 @@ fn print_files_matching(this_path: &Path, for_this: &Regex) {
     }
 }
 
+fn print_usage(program: &str, opts: Options) {
+    let brief = format!("Usage: {} PATTERN [options]", program);
+    print!("{}", opts.usage(&brief));
+}
+
 fn main() {
-    let ref re = Regex::new(r"f.lter").unwrap();
-    //print_files_matching(Path::new("."), re);
-    buffered_reader_search(Path::new("."), re);
+
+    let args: Vec<String> = env::args().collect();
+    let program = args[0].clone();
+
+    let opts = Options::new();
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => { m }
+        Err(f) => { panic!(f.to_string()) }
+    };
+    let pattern = if !matches.free.is_empty() {
+        matches.free[0].clone()
+    } else {
+        print_usage(&program, opts);
+        return;
+    };
+
+    let ref re = Regex::new(&pattern).unwrap();
+    print_files_matching(Path::new("."), re);
+    //buffered_reader_search(Path::new("."), re);
 }
