@@ -6,7 +6,7 @@ use std::io::prelude::*;
 use std::io::BufReader;
 
 use std::fs::File;
-use std::path::Path;
+use std::path::{Path,PathBuf};
 
 use regex::Regex;
 
@@ -67,6 +67,42 @@ fn print_files_matching(this_path: &Path, for_this: &Regex) {
     }
 }
 
+/// walk downwards from the current path and return
+/// a list of paths to files
+fn get_files(this_path: &Path) -> Vec<PathBuf>{
+    let contents = fs::read_dir(this_path).unwrap();
+    let mut output: Vec<PathBuf> = Vec::new();
+
+    for path in contents {
+        let p = path.unwrap().path();
+        if fs::metadata(&p).unwrap().is_dir() {
+            for child_path in get_files(&p) {
+                output.push(child_path)
+            }
+        } else if fs::metadata(&p).unwrap().is_file() {
+            output.push(p)
+        }
+    }
+
+    return output;
+}
+
+/// print the lines that match
+fn matching_lines(p: PathBuf, pattern: &Regex) {
+    let mut buffer = String::new();
+    // TODO: maybe move this side effect out, hand it a
+    //       stream of lines or otherwise opened file
+    let mut f = File::open(&p).unwrap();
+    match f.read_to_string(&mut buffer) {
+        Ok(yay_read) => yay_read,
+        Err(_) => 0,
+    };
+    let m_lines = buffer.lines().filter(|&x| pattern.is_match(x));
+    for l in m_lines {
+        println!("{}", l)
+    }
+}
+
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} PATTERN [options]", program);
     print!("{}", opts.usage(&brief));
@@ -90,6 +126,9 @@ fn main() {
     };
 
     let ref re = Regex::new(&pattern).unwrap();
-    print_files_matching(Path::new("."), re);
+    for p in get_files(Path::new(".")) {
+        matching_lines(p, re);
+    }
+    //print_files_matching(Path::new("."), re);
     //buffered_reader_search(Path::new("."), re);
 }
