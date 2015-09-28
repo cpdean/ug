@@ -87,8 +87,8 @@ fn get_files(this_path: &Path) -> Vec<PathBuf>{
     return output;
 }
 
-/// print the lines that match
-fn matching_lines(p: PathBuf, pattern: &Regex) {
+/// get matching lines from a path
+fn matching_lines(p: PathBuf, pattern: &Regex) ->  Vec<String> {
     let mut buffer = String::new();
     // TODO: maybe move this side effect out, hand it a
     //       stream of lines or otherwise opened file
@@ -97,10 +97,11 @@ fn matching_lines(p: PathBuf, pattern: &Regex) {
         Ok(yay_read) => yay_read,
         Err(_) => 0,
     };
-    let m_lines = buffer.lines().filter(|&x| pattern.is_match(x));
-    for l in m_lines {
-        println!("{}", l)
-    }
+    let m_lines: Vec<String> = buffer.lines()
+        .filter(|&x| pattern.is_match(x))
+        .map(|x| x.to_owned())
+        .collect();
+    return m_lines;
 }
 
 fn print_usage(program: &str, opts: Options) {
@@ -127,8 +128,8 @@ fn main() {
 
     let ref re = Regex::new(&pattern).unwrap();
     for p in get_files(Path::new(".")) {
-        matching_lines(p, re);
+        for l in matching_lines(p, re) {
+            println!("{}", l)
+        }
     }
-    //print_files_matching(Path::new("."), re);
-    //buffered_reader_search(Path::new("."), re);
 }
