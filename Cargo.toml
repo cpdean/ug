@@ -6,3 +6,4 @@ authors = ["Conrad Dean <conrad.p.dean@gmail.com>"]
 [dependencies]
 regex = "0.1.41"
 getopts = "0.2"
+glob = "0.2.10"

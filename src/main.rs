@@ -1,9 +1,14 @@
 extern crate regex;
 extern crate getopts;
+extern crate glob;
 
 use std::fs;
 use std::io::prelude::*;
 use std::io::BufReader;
+
+use std::collections::LinkedList;
+
+use glob::glob;
 
 use std::fs::File;
 use std::path::{Path,PathBuf};
@@ -67,16 +72,21 @@ fn print_files_matching(this_path: &Path, for_this: &Regex) {
     }
 }
 
+
 /// walk downwards from the current path and return
 /// a list of paths to files
-fn get_files(this_path: &Path) -> Vec<PathBuf>{
+fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
     let contents = fs::read_dir(this_path).unwrap();
     let mut output: Vec<PathBuf> = Vec::new();
+    //let ignores = vec![Path::new("./.git")];
 
     for path in contents {
         let p = path.unwrap().path();
+        if ignores.contains(&p){
+            continue;
+        }
         if fs::metadata(&p).unwrap().is_dir() {
-            for child_path in get_files(&p) {
+            for child_path in get_files(&p, ignores) {
                 output.push(child_path)
             }
         } else if fs::metadata(&p).unwrap().is_file() {
@@ -109,6 +119,45 @@ fn print_usage(program: &str, opts: Options) {
     print!("{}", opts.usage(&brief));
 }
 
+fn lines_of(file: &str) -> Vec<String> {
+    let mut buffer = String::new();
+    // TODO: maybe move this side effect out, hand it a
+    //       stream of lines or otherwise opened file
+    let mut f = File::open(file).unwrap();
+    let _ = f.read_to_string(&mut buffer).unwrap();
+    buffer.lines().map(ToOwned::to_owned).collect()
+}
+
+fn get_ignored_files_from_config() -> LinkedList<PathBuf> {
+    let mut o = LinkedList::new();
+    for line in lines_of(".gitignore") {
+        o.push_back(Path::new(&line).to_path_buf())
+    }
+    o
+}
+
+fn get_things_you_should_ignore() -> Vec<PathBuf> { 
+
+    let mut heynow = get_ignored_files_from_config();
+
+    let known_files_to_ignore = glob(".git/*")
+        .unwrap()
+        .map(|x| x.unwrap());
+
+    heynow.extend(known_files_to_ignore);
+    let mut fixed: Vec<PathBuf> = Vec::new();
+
+    let jerk: Vec<_> = heynow.into_iter()
+        .map(|x| {
+            let mut guy = PathBuf::from(".");
+            guy.push(x.as_path());
+            guy
+        }).collect();
+
+    fixed.extend(jerk);
+    fixed
+}
+
 fn main() {
 
     let args: Vec<String> = env::args().collect();
@@ -127,9 +176,14 @@ fn main() {
     };
 
     let ref re = Regex::new(&pattern).unwrap();
-    for p in get_files(Path::new(".")) {
+
+    let fixed = get_things_you_should_ignore();
+
+    for p in get_files(Path::new("."), &fixed) {
         for l in matching_lines(p, re) {
             println!("{}", l)
         }
     }
+
+
 }
