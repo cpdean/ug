@@ -5,6 +5,7 @@ extern crate glob;
 use std::fs;
 use std::io::prelude::*;
 use std::io::BufReader;
+use std::process;
 
 use std::collections::LinkedList;
 
@@ -158,8 +159,7 @@ fn get_things_you_should_ignore() -> Vec<PathBuf> {
     fixed
 }
 
-fn main() {
-
+fn get_opts() -> Result<(String, Options), String> {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
 
@@ -172,15 +172,23 @@ fn main() {
         matches.free[0].clone()
     } else {
         print_usage(&program, opts);
-        return;
+        return Err("not enough args".to_string())
     };
+    Ok((pattern, opts))
 
-    let ref re = Regex::new(&pattern).unwrap();
+}
+
+fn main() {
+
+    let (re, opts) = match get_opts() {
+        Ok((p, o)) => { (Regex::new(&p).unwrap(), o) },
+        Err(_) => { process::exit(1) },
+    };
 
     let fixed = get_things_you_should_ignore();
 
     for p in get_files(Path::new("."), &fixed) {
-        for l in matching_lines(p, re) {
+        for l in matching_lines(p, &re) {
             println!("{}", l)
         }
     }
