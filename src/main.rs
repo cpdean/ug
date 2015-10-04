@@ -8,15 +8,16 @@ use std::io::BufReader;
 use std::process;
 
 use std::collections::LinkedList;
+use std::collections::VecDeque;
 
 use glob::glob;
 
 use std::fs::File;
-use std::path::{Path,PathBuf};
+use std::path::{Path, PathBuf};
 
 use regex::Regex;
 
-use getopts::Options;
+use getopts::{Options, Matches};
 use std::env;
 
 /// buffered_reader_search tries to use a BufReader for looking
@@ -99,7 +100,7 @@ fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
 }
 
 /// get matching lines from a path
-fn matching_lines(p: PathBuf, pattern: &Regex) ->  Vec<String> {
+fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<String> {
     let mut buffer = String::new();
     // TODO: maybe move this side effect out, hand it a
     //       stream of lines or otherwise opened file
@@ -159,11 +160,12 @@ fn get_things_you_should_ignore() -> Vec<PathBuf> {
     fixed
 }
 
-fn get_opts() -> Result<(String, Options), String> {
+fn get_opts() -> Result<(String, Matches), String> {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
 
-    let opts = Options::new();
+    let mut opts = Options::new();
+    opts.optflag("l", "list-files", "list only files that contain the pattern");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }
@@ -174,8 +176,19 @@ fn get_opts() -> Result<(String, Options), String> {
         print_usage(&program, opts);
         return Err("not enough args".to_string())
     };
-    Ok((pattern, opts))
+    Ok((pattern, matches))
 
+}
+
+struct SearchResults {
+    results: VecDeque<(PathBuf, Vec<String>)>,
+}
+
+impl Iterator for SearchResults {
+    type Item = (PathBuf, Vec<String>);
+    fn next(&mut self) -> Option<(PathBuf, Vec<String>)> {
+        self.results.pop_front()
+    }
 }
 
 fn main() {
@@ -187,9 +200,21 @@ fn main() {
 
     let fixed = get_things_you_should_ignore();
 
-    for p in get_files(Path::new("."), &fixed) {
-        for l in matching_lines(p, &re) {
-            println!("{}", l)
+    if opts.opt_present("l") {
+        println!("wot m8???");
+        return;
+    }
+    else {
+        let results = get_files(Path::new("."), &fixed).into_iter()
+            .map(|p| {
+                let such_lines = matching_lines(&p, &re);
+                (p, such_lines)
+            });
+        for (pat, linz) in results {
+            println!("wow such {}", pat.display());
+            for lin in linz{
+                println!("{}", lin)
+            }
         }
     }
 
