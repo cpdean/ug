@@ -8,7 +8,6 @@ use std::io::BufReader;
 use std::process;
 
 use std::collections::LinkedList;
-use std::collections::VecDeque;
 
 use glob::glob;
 
@@ -180,14 +179,12 @@ fn get_opts() -> Result<(String, Matches), String> {
 
 }
 
-struct SearchResults {
-    results: VecDeque<(PathBuf, Vec<String>)>,
-}
-
-impl Iterator for SearchResults {
-    type Item = (PathBuf, Vec<String>);
-    fn next(&mut self) -> Option<(PathBuf, Vec<String>)> {
-        self.results.pop_front()
+fn display_them(results: Vec<(PathBuf, Vec<String>)>, opts: &Matches) {
+    for (pat, linz) in results {
+        println!("wow such {}", pat.display());
+        for lin in linz{
+            println!("{}", lin)
+        }
     }
 }
 
@@ -205,17 +202,14 @@ fn main() {
         return;
     }
     else {
-        let results = get_files(Path::new("."), &fixed).into_iter()
+        let results: Vec<(PathBuf, Vec<String>)> = get_files(Path::new("."), &fixed).into_iter()
             .map(|p| {
                 let such_lines = matching_lines(&p, &re);
                 (p, such_lines)
-            });
-        for (pat, linz) in results {
-            println!("wow such {}", pat.display());
-            for lin in linz{
-                println!("{}", lin)
-            }
-        }
+            }).collect();
+
+        display_them(results, &opts);
+
     }
 
 
