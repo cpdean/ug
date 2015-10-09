@@ -99,7 +99,7 @@ fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
 }
 
 /// get matching lines from a path
-fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<String> {
+fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<(usize, String)> {
     let mut buffer = String::new();
     // TODO: maybe move this side effect out, hand it a
     //       stream of lines or otherwise opened file
@@ -108,9 +108,10 @@ fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<String> {
         Ok(yay_read) => yay_read,
         Err(_) => 0,
     };
-    let m_lines: Vec<String> = buffer.lines()
-        .filter(|&x| pattern.is_match(x))
-        .map(|x| x.to_owned())
+    let m_lines: Vec<(usize, String)> = buffer.lines()
+        .enumerate()
+        .filter(|&(i, x)| pattern.is_match(&x))
+        .map(|(i, x)| (i + 1, x.to_owned()))
         .collect();
     return m_lines;
 }
@@ -179,11 +180,16 @@ fn get_opts() -> Result<(String, Matches), String> {
 
 }
 
-fn display_them(results: Vec<(PathBuf, Vec<String>)>, opts: &Matches) {
+type FileResult = (PathBuf, Vec<(usize, String)>);
+
+fn display_them(results: Vec<FileResult>, opts: &Matches) {
     for (pat, linz) in results {
-        println!("wow such {}", pat.display());
-        for lin in linz{
-            println!("{}", lin)
+        if !linz.is_empty() {
+            println!("{}", pat.display());
+            for (line_num, lin) in linz{
+                println!("{}:{}", line_num, lin)
+            }
+            println!("")
         }
     }
 }
@@ -202,7 +208,7 @@ fn main() {
         return;
     }
     else {
-        let results: Vec<(PathBuf, Vec<String>)> = get_files(Path::new("."), &fixed).into_iter()
+        let results: Vec<FileResult> = get_files(Path::new("."), &fixed).into_iter()
             .map(|p| {
                 let such_lines = matching_lines(&p, &re);
                 (p, such_lines)
