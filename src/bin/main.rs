@@ -3,6 +3,10 @@ extern crate regex;
 extern crate getopts;
 extern crate glob;
 
+extern crate ug;
+
+use ug::core;
+
 #[cfg(not(test))]
 use std::fs;
 #[cfg(not(test))]
@@ -111,25 +115,6 @@ fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
     return output;
 }
 
-/// get matching lines from a path
-#[cfg(not(test))]
-fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<(usize, String)> {
-    let mut buffer = String::new();
-    // TODO: maybe move this side effect out, hand it a
-    //       stream of lines or otherwise opened file
-    let mut f = File::open(&p).unwrap();
-    match f.read_to_string(&mut buffer) {
-        Ok(yay_read) => yay_read,
-        Err(_) => 0,
-    };
-    let m_lines: Vec<(usize, String)> = buffer.lines()
-        .enumerate()
-        .filter(|&(i, x)| pattern.is_match(&x))
-        .map(|(i, x)| (i + 1, x.to_owned()))
-        .collect();
-    return m_lines;
-}
-
 #[cfg(not(test))]
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} PATTERN [options]", program);
@@ -232,7 +217,7 @@ fn main() {
     else {
         let results: Vec<FileResult> = get_files(Path::new("."), &fixed).into_iter()
             .map(|p| {
-                let such_lines = matching_lines(&p, &re);
+                let such_lines = core::matching_lines(&p, &re);
                 (p, such_lines)
             }).collect();
 
