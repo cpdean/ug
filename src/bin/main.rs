@@ -1,22 +1,34 @@
+#![cfg_attr(all(test, feature = "nightly"), feature(test))] // we only need test feature when testing
 extern crate regex;
 extern crate getopts;
 extern crate glob;
 
+#[cfg(not(test))]
 use std::fs;
+#[cfg(not(test))]
 use std::io::prelude::*;
+#[cfg(not(test))]
 use std::io::BufReader;
+#[cfg(not(test))]
 use std::process;
 
+#[cfg(not(test))]
 use std::collections::LinkedList;
 
+#[cfg(not(test))]
 use glob::glob;
 
+#[cfg(not(test))]
 use std::fs::File;
+#[cfg(not(test))]
 use std::path::{Path, PathBuf};
 
+#[cfg(not(test))]
 use regex::Regex;
 
+#[cfg(not(test))]
 use getopts::{Options, Matches};
+#[cfg(not(test))]
 use std::env;
 
 /// buffered_reader_search tries to use a BufReader for looking
@@ -28,7 +40,7 @@ use std::env;
 ///
 /// turns out that this is about 10x slower with debug compilation
 /// and 2x slower on a release build
-#[allow(dead_code)]
+#[cfg(not(test))]
 fn buffered_reader_search(this_path: &Path, for_this: &Regex) {
     let contents = fs::read_dir(this_path).unwrap();
     for path in contents {
@@ -50,7 +62,7 @@ fn buffered_reader_search(this_path: &Path, for_this: &Regex) {
     }
 }
 
-#[allow(dead_code)]
+#[cfg(not(test))]
 fn print_files_matching(this_path: &Path, for_this: &Regex) {
     let contents = fs::read_dir(this_path).unwrap();
     for path in contents {
@@ -76,6 +88,7 @@ fn print_files_matching(this_path: &Path, for_this: &Regex) {
 
 /// walk downwards from the current path and return
 /// a list of paths to files
+#[cfg(not(test))]
 fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
     let contents = fs::read_dir(this_path).unwrap();
     let mut output: Vec<PathBuf> = Vec::new();
@@ -99,6 +112,7 @@ fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
 }
 
 /// get matching lines from a path
+#[cfg(not(test))]
 fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<(usize, String)> {
     let mut buffer = String::new();
     // TODO: maybe move this side effect out, hand it a
@@ -116,11 +130,13 @@ fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<(usize, String)> {
     return m_lines;
 }
 
+#[cfg(not(test))]
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} PATTERN [options]", program);
     print!("{}", opts.usage(&brief));
 }
 
+#[cfg(not(test))]
 fn lines_of(file: &str) -> Vec<String> {
     let mut buffer = String::new();
     // TODO: maybe move this side effect out, hand it a
@@ -130,6 +146,7 @@ fn lines_of(file: &str) -> Vec<String> {
     buffer.lines().map(ToOwned::to_owned).collect()
 }
 
+#[cfg(not(test))]
 fn get_ignored_files_from_config() -> LinkedList<PathBuf> {
     let mut o = LinkedList::new();
     for line in lines_of(".gitignore") {
@@ -138,6 +155,7 @@ fn get_ignored_files_from_config() -> LinkedList<PathBuf> {
     o
 }
 
+#[cfg(not(test))]
 fn get_things_you_should_ignore() -> Vec<PathBuf> { 
 
     let mut heynow = get_ignored_files_from_config();
@@ -160,6 +178,7 @@ fn get_things_you_should_ignore() -> Vec<PathBuf> {
     fixed
 }
 
+#[cfg(not(test))]
 fn get_opts() -> Result<(String, Matches), String> {
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
@@ -180,8 +199,10 @@ fn get_opts() -> Result<(String, Matches), String> {
 
 }
 
+#[cfg(not(test))]
 type FileResult = (PathBuf, Vec<(usize, String)>);
 
+#[cfg(not(test))]
 fn display_them(results: Vec<FileResult>, opts: &Matches) {
     for (pat, linz) in results {
         if !linz.is_empty() {
@@ -194,6 +215,7 @@ fn display_them(results: Vec<FileResult>, opts: &Matches) {
     }
 }
 
+#[cfg(not(test))]
 fn main() {
 
     let (re, opts) = match get_opts() {
