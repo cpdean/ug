@@ -5,6 +5,7 @@ extern crate glob;
 
 extern crate ug;
 
+#[cfg(not(test))]
 use ug::core;
 
 #[cfg(not(test))]
