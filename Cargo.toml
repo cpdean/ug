@@ -3,6 +3,16 @@ name = "ug"
 version = "0.1.0"
 authors = ["Conrad Dean <conrad.p.dean@gmail.com>"]
 
+#cargocult just copying from racer's structure
+[lib]
+name = "ug"
+path = "src/ug/lib.rs"
+
+#cargocult just copying from racer's structure
+[[bin]]
+name = "ug"
+path = "src/bin/main.rs"
+
 [dependencies]
 regex = "0.1.41"
 getopts = "0.2"
