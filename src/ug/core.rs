@@ -42,3 +42,19 @@ fn the_matchline_finds_something_and_gives_line_number() {
 
     assert_eq!(results[0], (3, "        something".to_string()));
 }
+
+#[test]
+fn matching_lines_two_things() {
+    let file_to_search: String =
+        "first line
+        second line
+        thing one
+        thing two
+        junk line".to_string();
+    let to_find = Regex::new("thing").unwrap();
+    let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
+    assert_eq!(results.len(), 2);
+
+    assert_eq!(results[0], (3, "        thing one".to_string()));
+    assert_eq!(results[1], (4, "        thing two".to_string()));
+}
