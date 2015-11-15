@@ -13,8 +13,6 @@ use std::fs;
 #[cfg(not(test))]
 use std::io::prelude::*;
 #[cfg(not(test))]
-use std::io::BufReader;
-#[cfg(not(test))]
 use std::process;
 
 #[cfg(not(test))]
@@ -35,61 +33,6 @@ use regex::Regex;
 use getopts::{Options, Matches};
 #[cfg(not(test))]
 use std::env;
-
-/// buffered_reader_search tries to use a BufReader for looking
-/// at the contents of files instead of using the file's
-/// trait method read_to_string.  The reasoning was that
-/// reading an entire file to a string might be slow as
-/// it would need to get to the end of the file before it can
-/// split it by lines and conduct the search.
-///
-/// turns out that this is about 10x slower with debug compilation
-/// and 2x slower on a release build
-#[cfg(not(test))]
-fn buffered_reader_search(this_path: &Path, for_this: &Regex) {
-    let contents = fs::read_dir(this_path).unwrap();
-    for path in contents {
-        let p = path.unwrap().path();
-        if fs::metadata(&p).unwrap().is_dir() {
-            buffered_reader_search(&p, for_this);
-        } else if fs::metadata(&p).unwrap().is_file() {
-            //println!("looking at {}", &p.display());
-            let f = File::open(&p).unwrap();
-            let reader = BufReader::new(f);
-            let matching_lines = reader.lines().filter(
-                    |x| x.is_ok()
-                ).map(|x| x.unwrap())
-                .filter(|x| for_this.is_match(x));
-            for l in matching_lines {
-                println!("{}", l)
-            }
-        }
-    }
-}
-
-#[cfg(not(test))]
-fn print_files_matching(this_path: &Path, for_this: &Regex) {
-    let contents = fs::read_dir(this_path).unwrap();
-    for path in contents {
-        let p = path.unwrap().path();
-        if fs::metadata(&p).unwrap().is_dir() {
-            print_files_matching(&p, for_this);
-        } else if fs::metadata(&p).unwrap().is_file() {
-            //println!("looking at {}", &p.display());
-            let mut f = File::open(&p).unwrap();
-            let mut buffer = String::new();
-            match f.read_to_string(&mut buffer) {
-                Ok(yay_read) => yay_read,
-                Err(_) => 0,
-            };
-            let matching_lines = buffer.lines().filter(|&x| for_this.is_match(x));
-            for l in matching_lines {
-                println!("{}", l)
-            }
-        }
-    }
-}
-
 
 /// walk downwards from the current path and return
 /// a list of paths to files
@@ -188,17 +131,23 @@ fn get_opts() -> Result<(String, Matches), String> {
 #[cfg(not(test))]
 type FileResult = (PathBuf, Vec<(usize, String)>);
 
+/// given the matches, generate output as a
+/// stream of lines that will then be printed later
 #[cfg(not(test))]
-fn display_them(results: Vec<FileResult>, opts: &Matches) {
+fn display_output(results: Vec<FileResult>, opts: &Matches) -> Vec<String> {
+    let mut o: Vec<String> = Vec::new();
     for (pat, linz) in results {
         if !linz.is_empty() {
-            println!("{}", pat.display());
-            for (line_num, lin) in linz{
-                println!("{}:{}", line_num, lin)
+            o.push(format!("{}", pat.display()));
+            if !opts.opt_present("l") {
+                for (line_num, lin) in linz{
+                    o.push(format!("{}:{}", line_num, lin));
+                }
+                o.push(format!(""));
             }
-            println!("")
         }
     }
+    o
 }
 
 #[cfg(not(test))]
@@ -211,20 +160,14 @@ fn main() {
 
     let fixed = get_things_you_should_ignore();
 
-    if opts.opt_present("l") {
-        println!("wot m8???");
-        return;
+    let results: Vec<FileResult> = get_files(Path::new("."), &fixed).into_iter()
+        .map(|p| {
+            let such_lines = core::matching_lines(&p, &re);
+            (p, such_lines)
+        }).collect();
+
+    for l in display_output(results, &opts) {
+        println!("{}", l);
     }
-    else {
-        let results: Vec<FileResult> = get_files(Path::new("."), &fixed).into_iter()
-            .map(|p| {
-                let such_lines = core::matching_lines(&p, &re);
-                (p, such_lines)
-            }).collect();
-
-        display_them(results, &opts);
-
-    }
-
 
 }

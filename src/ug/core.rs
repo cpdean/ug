@@ -20,7 +20,7 @@ pub fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<(usize, String)> {
     return _matching_lines(buffer, pattern);
 }
 
-pub fn _matching_lines(contents: String, pattern: &Regex) -> Vec<(usize, String)> {
+fn _matching_lines(contents: String, pattern: &Regex) -> Vec<(usize, String)> {
     contents.lines()
         .enumerate()
         .filter(|&(_, x)| pattern.is_match(&x))
