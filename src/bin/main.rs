@@ -7,6 +7,7 @@ extern crate ug;
 
 #[cfg(not(test))]
 use ug::core;
+use ug::io;
 
 #[cfg(not(test))]
 use std::fs;
@@ -23,13 +24,11 @@ use glob::glob;
 
 #[cfg(not(test))]
 use std::fs::File;
-#[cfg(not(test))]
 use std::path::{Path, PathBuf};
 
 #[cfg(not(test))]
 use regex::Regex;
 
-#[cfg(not(test))]
 use getopts::{Options, Matches};
 #[cfg(not(test))]
 use std::env;
@@ -57,12 +56,6 @@ fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
     }
 
     return output;
-}
-
-#[cfg(not(test))]
-fn print_usage(program: &str, opts: Options) {
-    let brief = format!("Usage: {} PATTERN [options]", program);
-    print!("{}", opts.usage(&brief));
 }
 
 #[cfg(not(test))]
@@ -107,66 +100,25 @@ fn get_things_you_should_ignore() -> Vec<PathBuf> {
     fixed
 }
 
-#[cfg(not(test))]
-fn get_opts() -> Result<(String, Matches), String> {
-    let args: Vec<String> = env::args().collect();
-    let program = args[0].clone();
-
-    let mut opts = Options::new();
-    opts.optflag("l", "list-files", "list only files that contain the pattern");
-    let matches = match opts.parse(&args[1..]) {
-        Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()) }
-    };
-    let pattern = if !matches.free.is_empty() {
-        matches.free[0].clone()
-    } else {
-        print_usage(&program, opts);
-        return Err("not enough args".to_string())
-    };
-    Ok((pattern, matches))
-
-}
-
-#[cfg(not(test))]
-type FileResult = (PathBuf, Vec<(usize, String)>);
-
-/// given the matches, generate output as a
-/// stream of lines that will then be printed later
-#[cfg(not(test))]
-fn display_output(results: Vec<FileResult>, opts: &Matches) -> Vec<String> {
-    let mut o: Vec<String> = Vec::new();
-    for (pat, linz) in results {
-        if !linz.is_empty() {
-            o.push(format!("{}", pat.display()));
-            if !opts.opt_present("l") {
-                for (line_num, lin) in linz{
-                    o.push(format!("{}:{}", line_num, lin));
-                }
-                o.push(format!(""));
-            }
-        }
-    }
-    o
-}
 
 #[cfg(not(test))]
 fn main() {
 
-    let (re, opts) = match get_opts() {
+    let args: Vec<String> = env::args().collect();
+    let (re, opts) = match io::get_opts(args) {
         Ok((p, o)) => { (Regex::new(&p).unwrap(), o) },
         Err(_) => { process::exit(1) },
     };
 
     let fixed = get_things_you_should_ignore();
 
-    let results: Vec<FileResult> = get_files(Path::new("."), &fixed).into_iter()
+    let results: Vec<core::FileResult> = get_files(Path::new("."), &fixed).into_iter()
         .map(|p| {
             let such_lines = core::matching_lines(&p, &re);
             (p, such_lines)
         }).collect();
 
-    for l in display_output(results, &opts) {
+    for l in io::display_output(results, &opts) {
         println!("{}", l);
     }
 

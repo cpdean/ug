@@ -3,10 +3,11 @@ use std::io::prelude::*;
 #[cfg(not(test))]
 use std::fs::File;
 
-#[cfg(not(test))]
 use std::path::PathBuf;
 
 use regex::Regex;
+
+pub type FileResult = (PathBuf, Vec<(usize, String)>);
 
 /// get matching lines from a path
 #[cfg(not(test))]
@@ -28,33 +29,41 @@ fn _matching_lines(contents: String, pattern: &Regex) -> Vec<(usize, String)> {
         .collect()
 }
 
-#[test]
-fn the_matchline_finds_something_and_gives_line_number() {
-    let file_to_search: String =
-        "first line
-        second line
-        something
-        nothing
-        also nothing great".to_string();
-    let to_find = Regex::new("something").unwrap();
-    let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
-    assert_eq!(results.len(), 1);
+#[cfg(test)]
+mod tests {
+    use regex::Regex;
+    use super::_matching_lines;
 
-    assert_eq!(results[0], (3, "        something".to_string()));
+    #[test]
+    fn the_matchline_finds_something_and_gives_line_number() {
+        let file_to_search: String =
+            "first line
+            second line
+            something
+            nothing
+            also nothing great".to_string();
+        let to_find = Regex::new("something").unwrap();
+        let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
+        assert_eq!(results.len(), 1);
+
+        assert_eq!(results[0], (3, "            something".to_string()));
+    }
+
+    #[test]
+    fn matching_lines_two_things() {
+        let file_to_search: String =
+            "first line
+            second line
+            thing one
+            thing two
+            junk line".to_string();
+        let to_find = Regex::new("thing").unwrap();
+        let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
+        assert_eq!(results.len(), 2);
+
+        assert_eq!(results[0], (3, "            thing one".to_string()));
+        assert_eq!(results[1], (4, "            thing two".to_string()));
+    }
+
 }
 
-#[test]
-fn matching_lines_two_things() {
-    let file_to_search: String =
-        "first line
-        second line
-        thing one
-        thing two
-        junk line".to_string();
-    let to_find = Regex::new("thing").unwrap();
-    let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
-    assert_eq!(results.len(), 2);
-
-    assert_eq!(results[0], (3, "        thing one".to_string()));
-    assert_eq!(results[1], (4, "        thing two".to_string()));
-}
