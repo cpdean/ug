@@ -7,6 +7,7 @@ extern crate ug;
 
 #[cfg(not(test))]
 use ug::core;
+#[cfg(not(test))]
 use ug::io;
 
 #[cfg(not(test))]
@@ -24,12 +25,12 @@ use glob::glob;
 
 #[cfg(not(test))]
 use std::fs::File;
+#[cfg(not(test))]
 use std::path::{Path, PathBuf};
 
 #[cfg(not(test))]
 use regex::Regex;
 
-use getopts::{Options, Matches};
 #[cfg(not(test))]
 use std::env;
 
