@@ -1,5 +1,3 @@
-use std::io::prelude::*;
-
 #[cfg(not(test))]
 use std::fs::File;
 
@@ -11,7 +9,8 @@ pub type FileResult = (PathBuf, Vec<(usize, String)>);
 
 /// get matching lines from a path
 #[cfg(not(test))]
-pub fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<(usize, String)> {
+pub fn matching_lines(p: &PathBuf, pattern: &Regex) -> Vec<(usize, String)> {
+    use std::io::Read;
     let mut buffer = String::new();
     let mut f = File::open(&p).unwrap();
     match f.read_to_string(&mut buffer) {
@@ -22,7 +21,8 @@ pub fn matching_lines(p: &PathBuf, pattern: &Regex) ->  Vec<(usize, String)> {
 }
 
 fn _matching_lines(contents: String, pattern: &Regex) -> Vec<(usize, String)> {
-    contents.lines()
+    contents
+        .lines()
         .enumerate()
         .filter(|&(_, x)| pattern.is_match(&x))
         .map(|(i, x)| (i + 1, x.to_owned()))
@@ -31,17 +31,17 @@ fn _matching_lines(contents: String, pattern: &Regex) -> Vec<(usize, String)> {
 
 #[cfg(test)]
 mod tests {
-    use regex::Regex;
     use super::_matching_lines;
+    use regex::Regex;
 
     #[test]
     fn the_matchline_finds_something_and_gives_line_number() {
-        let file_to_search: String =
-            "first line
+        let file_to_search: String = "first line
             second line
             something
             nothing
-            also nothing great".to_string();
+            also nothing great"
+            .to_string();
         let to_find = Regex::new("something").unwrap();
         let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
         assert_eq!(results.len(), 1);
@@ -51,12 +51,12 @@ mod tests {
 
     #[test]
     fn matching_lines_two_things() {
-        let file_to_search: String =
-            "first line
+        let file_to_search: String = "first line
             second line
             thing one
             thing two
-            junk line".to_string();
+            junk line"
+            .to_string();
         let to_find = Regex::new("thing").unwrap();
         let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
         assert_eq!(results.len(), 2);
@@ -66,4 +66,3 @@ mod tests {
     }
 
 }
-
