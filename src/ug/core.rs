@@ -43,7 +43,7 @@ mod tests {
             also nothing great"
             .to_string();
         let to_find = Regex::new("something").unwrap();
-        let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
+        let results: Vec<(usize, String)> = _matching_lines(&file_to_search, &to_find);
         assert_eq!(results.len(), 1);
 
         assert_eq!(results[0], (3, "            something".to_string()));
@@ -58,7 +58,7 @@ mod tests {
             junk line"
             .to_string();
         let to_find = Regex::new("thing").unwrap();
-        let results: Vec<(usize, String)> = _matching_lines(file_to_search, &to_find);
+        let results: Vec<(usize, String)> = _matching_lines(&file_to_search, &to_find);
         assert_eq!(results.len(), 2);
 
         assert_eq!(results[0], (3, "            thing one".to_string()));
