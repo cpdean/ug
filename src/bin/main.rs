@@ -37,7 +37,7 @@ use std::env;
 /// walk downwards from the current path and return
 /// a list of paths to files
 #[cfg(not(test))]
-fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
+fn get_files(this_path: &Path, ignores: &[PathBuf]) -> Vec<PathBuf>{
     let contents = fs::read_dir(this_path).unwrap();
     let mut output: Vec<PathBuf> = Vec::new();
     //let ignores = vec![Path::new("./.git")];
@@ -56,7 +56,7 @@ fn get_files(this_path: &Path, ignores: &Vec<PathBuf>) -> Vec<PathBuf>{
         }
     }
 
-    return output;
+    output
 }
 
 #[cfg(not(test))]
@@ -106,7 +106,7 @@ fn get_things_you_should_ignore() -> Vec<PathBuf> {
 fn main() {
 
     let args: Vec<String> = env::args().collect();
-    let (re, opts) = match io::get_opts(args) {
+    let (re, opts) = match io::get_opts(&args) {
         Ok((p, o)) => { (Regex::new(&p).unwrap(), o) },
         Err(_) => { process::exit(1) },
     };

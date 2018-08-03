@@ -17,10 +17,10 @@ pub fn matching_lines(p: &PathBuf, pattern: &Regex) -> Vec<(usize, String)> {
         Ok(yay_read) => yay_read,
         Err(_) => 0,
     };
-    return _matching_lines(buffer, pattern);
+    _matching_lines(&buffer, pattern)
 }
 
-fn _matching_lines(contents: String, pattern: &Regex) -> Vec<(usize, String)> {
+fn _matching_lines(contents: &str, pattern: &Regex) -> Vec<(usize, String)> {
     contents
         .lines()
         .enumerate()

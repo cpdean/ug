@@ -15,7 +15,7 @@ fn get_display_mode(opts: &Matches) -> DisplayMode {
     if opts.opt_present("c") {
         return DisplayMode::CountMatches;
     }
-    return DisplayMode::Regular;
+    DisplayMode::Regular
 }
 
 /// given the matches, generate output as a
@@ -36,7 +36,7 @@ pub fn display_output(results: Vec<core::FileResult>, opts: &Matches) -> Vec<Str
                     for (line_num, lin) in linz{
                         o.push(format!("{}:{}", line_num, lin));
                     }
-                    o.push(format!(""));
+                    o.push("".to_string());
                 },
             }
         }
@@ -45,7 +45,7 @@ pub fn display_output(results: Vec<core::FileResult>, opts: &Matches) -> Vec<Str
 }
 
 
-fn print_usage(program: &str, opts: Options) {
+fn print_usage(program: &str, opts: &Options) {
     let brief = format!("Usage: {} PATTERN [options]", program);
     print!("{}", opts.usage(&brief));
 }
@@ -57,7 +57,7 @@ fn opt_parser() -> Options {
     opts
 }
 
-pub fn get_opts(args: Vec<String>) -> Result<(String, Matches), String> {
+pub fn get_opts(args: &[String]) -> Result<(String, Matches), String> {
     let program = args[0].clone();
 
     let opts = opt_parser();
@@ -68,7 +68,7 @@ pub fn get_opts(args: Vec<String>) -> Result<(String, Matches), String> {
     let pattern = if !matches.free.is_empty() {
         matches.free[0].clone()
     } else {
-        print_usage(&program, opts);
+        print_usage(&program, &opts);
         return Err("not enough args".to_string())
     };
     Ok((pattern, matches))
