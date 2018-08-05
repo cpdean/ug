@@ -1,9 +1,8 @@
-/*!
-This module contains *integration* tests. Their purpose is to test the CLI
-interface. Namely, that passing a flag does what it says on the tin.
+/*
 
-Tests for more fine grained behavior (like the search or the globber) should be
-unit tests in their respective modules.
+repurposed from ripgrep's integration framework
+https://github.com/BurntSushi/ripgrep/blob/2913fc4cd063f4d869f54497a313aafbf5330346/tests/tests.rs
+
 */
 
 #![allow(dead_code, unused_imports)]
@@ -66,4 +65,22 @@ clean!(please_goat, "goat", ".", |wd: WorkDir, mut cmd: Command| {
 
     let lines: String = wd.stdout(&mut cmd);
     assert_eq!(lines, "./foo\n1:goat\n");
+});
+
+clean!(ignore_default_gitdir, "test", ".", |wd: WorkDir, mut cmd: Command| {
+    wd.create_dir(".git");
+    wd.create(".git/foo", "test");
+    wd.create("foo", "test");
+
+    let lines: String = wd.stdout(&mut cmd);
+    assert_eq!(lines, "./foo\n1:test\n");
+});
+
+clean!(ignore_file_by_git_ignore, "test", ".", |wd: WorkDir, mut cmd: Command| {
+    wd.create(".gitignore", "ignore_me");
+    wd.create("ignore_me", "test");
+    wd.create("foo", "test");
+
+    let lines: String = wd.stdout(&mut cmd);
+    assert_eq!(lines, "./foo\n1:test\n");
 });
