@@ -5,7 +5,7 @@ use core;
 enum DisplayMode {
     OnlyFiles,
     CountMatches,
-    Regular, // Wanted 'Default' but it seems to be a reserved word
+    Regular,
 }
 
 fn get_display_mode(opts: &Matches) -> DisplayMode {
