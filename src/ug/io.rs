@@ -64,7 +64,7 @@ fn opt_parser() -> Options {
     opts
 }
 
-pub fn get_opts(args: &[String]) -> Result<(String, Matches), String> {
+pub fn get_opts(args: &[String]) -> Result<(String, String, Matches), String> {
     let program = args[0].clone();
 
     let opts = opt_parser();
@@ -72,13 +72,18 @@ pub fn get_opts(args: &[String]) -> Result<(String, Matches), String> {
         Ok(m) => m,
         Err(f) => panic!(f.to_string()),
     };
-    let pattern = if !matches.free.is_empty() {
-        matches.free[0].clone()
-    } else {
-        print_usage(&program, &opts);
-        return Err("not enough args".to_string());
-    };
-    Ok((pattern, matches))
+    match matches.free.clone().as_slice() {
+        [] => {
+            print_usage(&program, &opts);
+            Err("not enough args".to_string())
+        }
+        [pattern] => Ok((pattern.to_string(), ".".to_string(), matches)),
+        [pattern, path] => Ok((pattern.to_string(), path.to_string(), matches)),
+        _ => {
+            print_usage(&program, &opts);
+            Err("too many args".to_string())
+        }
+    }
 }
 
 #[cfg(test)]
@@ -92,7 +97,7 @@ mod tests {
         let m = vec![(1, "a match".to_string())];
         let args = vec!["self".to_string(), "beh".to_string(), "-l".to_string()];
         let (_, opts) = match get_opts(&args) {
-            Ok((_, o)) => (1, o),
+            Ok((_, _, o)) => (1, o),
             Err(_) => panic!("at the disco"),
         };
 
@@ -107,7 +112,7 @@ mod tests {
         let m = vec![(1, format!("a match"))];
         let args = vec![format!("self"), format!("beh")];
         let (_, opts) = match get_opts(&args) {
-            Ok((_, o)) => (1, o),
+            Ok((_, _, o)) => (1, o),
             Err(_) => panic!("sure hope not"),
         };
 
@@ -130,7 +135,7 @@ mod tests {
         let args = vec!["self".to_string(), "beh".to_string(), "-c".to_string()];
 
         let (_, opts) = match get_opts(&args) {
-            Ok((_, o)) => (1, o),
+            Ok((_, _, o)) => (1, o),
             Err(_) => panic!("should never happen"),
         };
 

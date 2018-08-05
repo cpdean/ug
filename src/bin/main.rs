@@ -1,7 +1,7 @@
 #![cfg_attr(all(test, feature = "nightly"), feature(test))] // we only need test feature when testing
-extern crate regex;
 extern crate getopts;
 extern crate glob;
+extern crate regex;
 
 extern crate ug;
 
@@ -37,14 +37,14 @@ use std::env;
 /// walk downwards from the current path and return
 /// a list of paths to files
 #[cfg(not(test))]
-fn get_files(this_path: &Path, ignores: &[PathBuf]) -> Vec<PathBuf>{
+fn get_files(this_path: &Path, ignores: &[PathBuf]) -> Vec<PathBuf> {
     let contents = fs::read_dir(this_path).unwrap();
     let mut output: Vec<PathBuf> = Vec::new();
     //let ignores = vec![Path::new("./.git")];
 
     for path in contents {
         let p = path.unwrap().path();
-        if ignores.contains(&p){
+        if ignores.contains(&p) {
             continue;
         }
         if fs::metadata(&p).unwrap().is_dir() {
@@ -79,18 +79,16 @@ fn get_ignored_files_from_config() -> LinkedList<PathBuf> {
 }
 
 #[cfg(not(test))]
-fn get_things_you_should_ignore() -> Vec<PathBuf> { 
-
+fn get_things_you_should_ignore() -> Vec<PathBuf> {
     let mut heynow = get_ignored_files_from_config();
 
-    let known_files_to_ignore = glob(".git/*")
-        .unwrap()
-        .map(|x| x.unwrap());
+    let known_files_to_ignore = glob(".git/*").unwrap().map(|x| x.unwrap());
 
     heynow.extend(known_files_to_ignore);
     let mut fixed: Vec<PathBuf> = Vec::new();
 
-    let jerk: Vec<_> = heynow.into_iter()
+    let jerk: Vec<_> = heynow
+        .into_iter()
         .map(|x| {
             let mut guy = PathBuf::from(".");
             guy.push(x.as_path());
@@ -101,19 +99,18 @@ fn get_things_you_should_ignore() -> Vec<PathBuf> {
     fixed
 }
 
-
 #[cfg(not(test))]
 fn main() {
-
     let args: Vec<String> = env::args().collect();
-    let (re, opts) = match io::get_opts(&args) {
-        Ok((p, o)) => { (Regex::new(&p).unwrap(), o) },
-        Err(_) => { process::exit(1) },
+    let (re, path, opts) = match io::get_opts(&args) {
+        Ok((pattern, path, o)) => (Regex::new(&pattern).unwrap(), path, o),
+        Err(_) => process::exit(1),
     };
 
     let fixed = get_things_you_should_ignore();
 
-    let results: Vec<core::FileResult> = get_files(Path::new("."), &fixed).into_iter()
+    let results: Vec<core::FileResult> = get_files(Path::new(&path), &fixed)
+        .into_iter()
         .map(|p| {
             let such_lines = core::matching_lines(&p, &re);
             (p, such_lines)
@@ -122,5 +119,4 @@ fn main() {
     for l in io::display_output(results, &opts) {
         println!("{}", l);
     }
-
 }
