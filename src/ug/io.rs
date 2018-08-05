@@ -36,7 +36,6 @@ pub fn display_output(results: Vec<core::FileResult>, opts: &Matches) -> Vec<Str
                     for (line_num, lin) in linz {
                         o.push(format!("{}:{}", line_num, lin));
                     }
-                    o.push("".to_string());
                 }
             }
         }
@@ -118,10 +117,7 @@ mod tests {
 
         let file_result = vec![(p, m)];
         let output = display_output(file_result, &opts);
-        assert_eq!(
-            vec![format!("test_file.txt"), format!("1:a match"), format!(""),],
-            output
-        );
+        assert_eq!(vec![format!("test_file.txt"), format!("1:a match")], output);
     }
 
     #[test]
