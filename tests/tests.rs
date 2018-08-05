@@ -96,3 +96,14 @@ fn test_empty_dir() {
     let lines: String = wd.stdout(&mut cmd);
     assert_eq!(lines, "");
 }
+
+#[test]
+/// https://github.com/cpdean/ug/issues/6
+fn test_missing_gitignore() {
+    let wd = WorkDir::new("empty_dir");
+
+    let mut cmd = wd.command();
+    cmd.arg(".");
+    let lines: String = wd.stdout(&mut cmd);
+    assert_eq!(lines, "");
+}

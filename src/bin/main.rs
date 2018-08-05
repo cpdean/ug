@@ -46,12 +46,14 @@ fn get_files(this_path: &Path, ignores: &[PathBuf]) -> Vec<PathBuf> {
 }
 
 fn lines_of(file: &str) -> Vec<String> {
-    let mut buffer = String::new();
-    // TODO: maybe move this side effect out, hand it a
-    //       stream of lines or otherwise opened file
-    let mut f = File::open(file).unwrap();
-    let _ = f.read_to_string(&mut buffer).unwrap();
-    buffer.lines().map(ToOwned::to_owned).collect()
+    match File::open(file) {
+        Ok(mut f) => {
+            let mut buffer = String::new();
+            let _ = f.read_to_string(&mut buffer).unwrap();
+            buffer.lines().map(ToOwned::to_owned).collect()
+        }
+        Err(_) => Vec::new(),
+    }
 }
 
 fn get_ignored_files_from_config() -> LinkedList<PathBuf> {
