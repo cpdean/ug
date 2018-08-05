@@ -45,7 +45,7 @@ pub fn display_output(results: Vec<core::FileResult>, opts: &Matches) -> Vec<Str
 }
 
 fn print_usage(program: &str, opts: &Options) {
-    let brief = format!("Usage: {} PATTERN [options]", program);
+    let brief = format!("Usage: {} PATTERN [PATH] [options]", program);
     print!("{}", opts.usage(&brief));
 }
 
