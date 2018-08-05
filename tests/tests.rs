@@ -84,3 +84,15 @@ clean!(ignore_file_by_git_ignore, "test", ".", |wd: WorkDir, mut cmd: Command| {
     let lines: String = wd.stdout(&mut cmd);
     assert_eq!(lines, "./foo\n1:test\n");
 });
+
+#[test]
+fn test_empty_dir() {
+    let wd = WorkDir::new("empty_dir");
+    // until https://github.com/cpdean/ug/issues/6
+    wd.create(".gitignore", "");
+
+    let mut cmd = wd.command();
+    cmd.arg(".");
+    let lines: String = wd.stdout(&mut cmd);
+    assert_eq!(lines, "");
+}
