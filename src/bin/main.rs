@@ -1,42 +1,29 @@
-#![cfg_attr(all(test, feature = "nightly"), feature(test))] // we only need test feature when testing
 extern crate getopts;
 extern crate glob;
 extern crate regex;
 
 extern crate ug;
 
-#[cfg(not(test))]
 use ug::core;
-#[cfg(not(test))]
 use ug::io;
 
-#[cfg(not(test))]
 use std::fs;
-#[cfg(not(test))]
 use std::io::prelude::*;
-#[cfg(not(test))]
 use std::process;
 
-#[cfg(not(test))]
 use std::collections::LinkedList;
 
-#[cfg(not(test))]
 use glob::glob;
 
-#[cfg(not(test))]
 use std::fs::File;
-#[cfg(not(test))]
 use std::path::{Path, PathBuf};
 
-#[cfg(not(test))]
 use regex::Regex;
 
-#[cfg(not(test))]
 use std::env;
 
 /// walk downwards from the current path and return
 /// a list of paths to files
-#[cfg(not(test))]
 fn get_files(this_path: &Path, ignores: &[PathBuf]) -> Vec<PathBuf> {
     let contents = fs::read_dir(this_path).unwrap();
     let mut output: Vec<PathBuf> = Vec::new();
@@ -58,7 +45,6 @@ fn get_files(this_path: &Path, ignores: &[PathBuf]) -> Vec<PathBuf> {
     output
 }
 
-#[cfg(not(test))]
 fn lines_of(file: &str) -> Vec<String> {
     let mut buffer = String::new();
     // TODO: maybe move this side effect out, hand it a
@@ -68,7 +54,6 @@ fn lines_of(file: &str) -> Vec<String> {
     buffer.lines().map(ToOwned::to_owned).collect()
 }
 
-#[cfg(not(test))]
 fn get_ignored_files_from_config() -> LinkedList<PathBuf> {
     let mut o = LinkedList::new();
     for line in lines_of(".gitignore") {
@@ -77,7 +62,6 @@ fn get_ignored_files_from_config() -> LinkedList<PathBuf> {
     o
 }
 
-#[cfg(not(test))]
 fn get_things_you_should_ignore() -> Vec<PathBuf> {
     let mut gitignored = get_ignored_files_from_config();
 
@@ -95,7 +79,6 @@ fn get_things_you_should_ignore() -> Vec<PathBuf> {
         }).collect()
 }
 
-#[cfg(not(test))]
 fn main() {
     let args: Vec<String> = env::args().collect();
     let (re, path, opts) = match io::get_opts(&args) {

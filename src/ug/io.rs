@@ -22,18 +22,18 @@ fn get_display_mode(opts: &Matches) -> DisplayMode {
 /// stream of lines that will then be printed later
 pub fn display_output(results: Vec<core::FileResult>, opts: &Matches) -> Vec<String> {
     let mut o: Vec<String> = Vec::new();
-    for (pat, linz) in results {
-        if !linz.is_empty() {
+    for (pat, matching_lines) in results {
+        if !matching_lines.is_empty() {
             match get_display_mode(&opts) {
                 DisplayMode::OnlyFiles => {
                     o.push(format!("{}", pat.display()));
                 }
                 DisplayMode::CountMatches => {
-                    o.push(format!("{}:{}", pat.display(), linz.len()));
+                    o.push(format!("{}:{}", pat.display(), matching_lines.len()));
                 }
                 DisplayMode::Regular => {
                     o.push(format!("{}", pat.display()));
-                    for (line_num, lin) in linz {
+                    for (line_num, lin) in matching_lines {
                         o.push(format!("{}:{}", line_num, lin));
                     }
                 }

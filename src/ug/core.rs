@@ -1,4 +1,3 @@
-#[cfg(not(test))]
 use std::fs::File;
 
 use std::path::PathBuf;
@@ -7,8 +6,6 @@ use regex::Regex;
 
 pub type FileResult = (PathBuf, Vec<(usize, String)>);
 
-/// get matching lines from a path
-#[cfg(not(test))]
 pub fn matching_lines(p: &PathBuf, pattern: &Regex) -> Vec<(usize, String)> {
     use std::io::Read;
     let mut buffer = String::new();
